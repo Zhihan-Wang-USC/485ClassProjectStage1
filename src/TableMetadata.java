@@ -1,14 +1,12 @@
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.io.*;
+import java.io.Serializable;
+import java.util.*;
 
 
 /**
  * TableMetadata defines the view of the table's metadata in system.
  */
-public class TableMetadata {
+public class TableMetadata implements Serializable {
 
   // Map from AttributeName to AttributeType
   private HashMap<String, AttributeType> attributes;
@@ -71,6 +69,22 @@ public class TableMetadata {
 
     this.primaryKeys = primaryKeys;
     return StatusCode.SUCCESS;
+  }
+
+  public String serializeToString() throws IOException {
+    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    try (ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+      oos.writeObject(this);
+    }
+    byte[] bytes = bos.toByteArray();
+    return Base64.getEncoder().encodeToString(bytes);
+  }
+
+  public static TableMetadata deserializeFromString(String s) throws IOException, ClassNotFoundException {
+    byte[] bytes = Base64.getDecoder().decode(s);
+    try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
+      return (TableMetadata) ois.readObject();
+    }
   }
 
 }
